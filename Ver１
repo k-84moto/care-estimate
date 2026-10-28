@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通所介護 概算利用料・加算シミュレーター【令和8年10月対応版】</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Sticky bottom padding to prevent content overlap */
+        .pb-safe-bottom {
+            padding-bottom: 120px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-safe-bottom">
+
+    <!-- Header -->
+    <header class="bg-emerald-700 text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i data-lucide="calculator" class="w-6 h-6 text-emerald-200"></i>
+                <div>
+                    <h1 class="font-bold text-base sm:text-lg leading-tight">デイサービス利用料計算</h1>
+                    <p class="text-xs text-emerald-200">令和8年10月改訂・加算対応版</p>
+                </div>
+            </div>
+            <button onclick="scrollToFeedback()" class="bg-emerald-800 hover:bg-emerald-900 text-xs text-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-1 border border-emerald-600 transition">
+                <i data-lucide="message-square-plus" class="w-3.5 h-3.5"></i>
+                <span>ご意見・評価</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-2xl mx-auto px-4 py-4 space-y-4">
+
+        <!-- Intro Alert -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs sm:text-sm text-emerald-900 flex items-start gap-2.5">
+            <i data-lucide="info" class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5"></i>
+            <div>
+                <p class="font-semibold mb-0.5">概算利用料シミュレーター</p>
+                <p class="text-emerald-800 leading-relaxed">
+                    要介護度や算定中の加算を選択するだけで、利用者ごとの1か月あたりの概算自己負担額（保険分＋食費）をリアルタイムで自動計算します。
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 1: 基本条件 -->
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+            <h2 class="font-bold text-slate-800 flex items-center gap-2 text-base border-b border-slate-100 pb-2">
+                <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold">1</span>
+                基本条件の設定
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- 要介護度 -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">要介護度 / 区分</label>
+                    <select id="careLevel" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="support1">要支援1（事業所総合事業）</option>
+                        <option value="support2">要支援2（事業所総合事業）</option>
+                        <option value="care1" selected>要介護1</option>
+                        <option value="care2">要介護2</option>
+                        <option value="care3">要介護3</option>
+                        <option value="care4">要介護4</option>
+                        <option value="care5">要介護5</option>
+                    </select>
+                </div>
+
+                <!-- 時間区分 -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">利用時間区分（要介護）</label>
+                    <select id="timeSlot" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="3-4">3時間以上4時間未満</option>
+                        <option value="4-5">4時間以上5時間未満</option>
+                        <option value="5-6">5時間以上6時間未満</option>
+                        <option value="6-7">6時間以上7時間未満</option>
+                        <option value="7-8" selected>7時間以上8時間未満</option>
+                        <option value="8-9">8時間以上9時間未満</option>
+                    </select>
+                </div>
+
+                <!-- 利用回数 (月) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">目安利用日数（1か月）</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="monthlyDays" value="8" min="1" max="31" oninput="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <span class="text-sm font-bold text-slate-600 shrink-0">日/月</span>
+                    </div>
+                </div>
+
+                <!-- 負担割合 -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">利用者負担割合</label>
+                    <select id="copayRate" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="0.1" selected>1割（一般的な負担）</option>
+                        <option value="0.2">2割</option>
+                        <option value="0.3">3割</option>
+                    </select>
+                </div>
+
+                <!-- 地域区分 -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">地域区分（単価）</label>
+                    <select id="regionRate" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <option value="11.40">1級地 (11.40円)</option>
+                        <option value="11.20">2級地 (11.20円)</option>
+                        <option value="11.05">3級地 (11.05円)</option>
+                        <option value="10.90">4級地 (10.90円)</option>
+                        <option value="10.72">5級地 (10.72円)</option>
+                        <option value="10.54">6級地 (10.54円)</option>
+                        <option value="10.21">7級地 (10.21円)</option>
+                        <option value="10.00" selected>その他 (10.00円)</option>
+                    </select>
+                </div>
+
+                <!-- 食費 (日額) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">食費（実費/1食当たり）</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="mealFee" value="650" step="50" oninput="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <span class="text-sm font-bold text-slate-600 shrink-0">円</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 加算選択 -->
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+                    <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold">2</span>
+                    算定加算の選択
+                </h2>
+                <span class="text-xs text-slate-500">令和8年10月基準</span>
+            </div>
+
+            <!-- Daily Add-ons Grid -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2.5 py-1 rounded inline-block">1日単位の加算</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- 入浴介助加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">入浴介助加算</label>
+                        <select id="addonBathing" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="40" selected>加算Ⅰ（40単位/日）</option>
+                            <option value="55">加算Ⅱ（55単位/日）</option>
+                        </select>
+                    </div>
+
+                    <!-- サービス提供体制強化加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">サービス提供体制強化加算</label>
+                        <select id="addonService" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="18">加算Ⅰ（18単位/日）</option>
+                            <option value="12">加算Ⅱ（12単位/日）</option>
+                            <option value="6">加算Ⅲ（6単位/日）</option>
+                        </select>
+                    </div>
+
+                    <!-- 個別機能訓練加算(日額) -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">個別機能訓練加算（日額）</label>
+                        <select id="addonFunctionalDaily" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="56">加算Ⅰイ（56単位/日）</option>
+                            <option value="85">加算Ⅰロ（85単位/日）</option>
+                        </select>
+                    </div>
+
+                    <!-- 重度者ケア体制加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">重度者ケア体制加算</label>
+                        <select id="addonSevere" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="15">加算Ⅰ（15単位/日）</option>
+                            <option value="7">加算Ⅱ（7単位/日）</option>
+                        </select>
+                    </div>
+
+                    <!-- 認知症加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">認知症加算</label>
+                        <select id="addonDementia" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="60">あり（60単位/日）</option>
+                        </select>
+                    </div>
+
+                    <!-- 若年性認知症加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">若年性認知症利用者受入加算</label>
+                        <select id="addonYoungDementia" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="60">あり（60単位/日）</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Add-ons Grid -->
+            <div class="space-y-3 pt-2">
+                <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2.5 py-1 rounded inline-block">1か月単位の加算</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- 科学的介護推進体制加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">科学的介護推進体制加算(LIFE)</label>
+                        <select id="addonLife" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="40">あり（40単位/月）</option>
+                        </select>
+                    </div>
+
+                    <!-- 個別機能訓練加算(Ⅱ) -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">個別機能訓練加算（月額）</label>
+                        <select id="addonFunctionalMonthly" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="20">加算Ⅱ（20単位/月）</option>
+                        </select>
+                    </div>
+
+                    <!-- 栄養アセスメント / 改善加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">栄養アセスメント・改善加算</label>
+                        <select id="addonNutrition" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="50">栄養アセスメント加算（50単位/月）</option>
+                            <option value="200">栄養改善加算（200単位/月）</option>
+                        </select>
+                    </div>
+
+                    <!-- 口腔機能向上加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">口腔機能向上加算</label>
+                        <select id="addonOral" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="150">加算Ⅰ（150単位/月）</option>
+                            <option value="160">加算Ⅱ（160単位/月）</option>
+                        </select>
+                    </div>
+
+                    <!-- ADL維持等加算 -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">ADL維持等加算</label>
+                        <select id="addonAdl" onchange="calculateTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="0">なし</option>
+                            <option value="30">加算Ⅰ（30単位/月）</option>
+                            <option value="60">加算Ⅱ（60単位/月）</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Improvement Rate (新・処遇改善加算) -->
+            <div class="pt-2 border-t border-slate-100">
+                <label class="block text-xs font-bold text-emerald-900 mb-1">新・介護職員等処遇改善加算（令和6・8年統合一元化）</label>
+                <select id="addonTreatment" onchange="calculateTotal()" class="w-full bg-emerald-50/50 border border-emerald-300 text-emerald-950 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <option value="0">なし</option>
+                    <option value="0.092" selected>新加算Ⅰ (9.2%)</option>
+                    <option value="0.090">新加算Ⅱ (9.0%)</option>
+                    <option value="0.080">新加算Ⅲ (8.0%)</option>
+                    <option value="0.064">新加算Ⅳ (6.4%)</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Section 3: 計算内訳アコーディオン -->
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+            <details class="group">
+                <summary class="flex justify-between items-center font-bold text-slate-700 cursor-pointer select-none">
+                    <span class="flex items-center gap-2 text-sm">
+                        <i data-lucide="list-tree" class="w-4 h-4 text-emerald-600"></i>
+                        詳細な単位数・計算内訳を表示
+                    </span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400"></i>
+                </summary>
+
+                <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs text-slate-600">
+                    <div class="flex justify-between">
+                        <span>基本報酬単価 (1回/月あたり):</span>
+                        <span id="detailBaseUnit" class="font-mono font-bold text-slate-800">0 単位</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>日額加算の合計 (1日あたり):</span>
+                        <span id="detailDailyAddon" class="font-mono font-bold text-slate-800">0 単位</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>月額加算の合計 (1か月あたり):</span>
+                        <span id="detailMonthlyAddon" class="font-mono font-bold text-slate-800">0 単位</span>
+                    </div>
+                    <div class="flex justify-between border-t border-dashed border-slate-200 pt-1.5">
+                        <span>小計単位数 (処遇改善適用前):</span>
+                        <span id="detailSubtotalUnits" class="font-mono font-bold text-slate-800">0 単位</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>処遇改善加算分:</span>
+                        <span id="detailTreatmentUnits" class="font-mono font-bold text-slate-800">0 単位</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-900 border-t border-slate-200 pt-1.5 text-sm">
+                        <span>総算定単位数 (月合計):</span>
+                        <span id="detailTotalUnits" class="font-mono text-emerald-700">0 単位</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500 pt-1">
+                        <span>介護保険給付総額 (100%):</span>
+                        <span id="detailTotalInsuranceAmount" class="font-mono">0 円</span>
+                    </div>
+                </div>
+            </details>
+        </section>
+
+    </main>
+
+    <!-- Sticky Bottom Result Bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white shadow-2xl border-t border-slate-800 z-40">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-slate-400 font-medium">概算月額自己負担額 (税込・食費込)</p>
+                <div class="flex items-baseline gap-1">
+                    <span id="grandTotal" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">0</span>
+                    <span class="text-xs font-bold text-slate-300">円 / 月</span>
+                </div>
+            </div>
+
+            <div class="text-right border-l border-slate-700 pl-3">
+                <p class="text-[10px] text-slate-400">内訳目安</p>
+                <p class="text-xs text-slate-200">
+                    保険分: <span id="summaryInsuranceCopay" class="font-mono font-bold text-white">0</span>円
+                </p>
+                <p class="text-xs text-slate-200">
+                    食費分: <span id="summaryMealTotal" class="font-mono font-bold text-white">0</span>円
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Section -->
+    <script>
+        // Master Data for Base Units (通所介護基本報酬: 7-8時間区分および要支援)
+        const BASE_UNITS = {
+            // 要支援 (月額定額)
+            support1: { base: 1700, type: 'monthly' },
+            support2: { base: 3400, type: 'monthly' },
+            // 要介護 (日額: 時間区分による係数)
+            // 基準は7-8時間区分
+            care1: { base: 655, type: 'daily' },
+            care2: { base: 773, type: 'daily' },
+            care3: { base: 896, type: 'daily' },
+            care4: { base: 1018, type: 'daily' },
+            care5: { base: 1142, type: 'daily' }
+        };
+
+        // Time slot multipliers relative to 7-8 hours
+        const TIME_MULTIPLIERS = {
+            '3-4': 0.65,
+            '4-5': 0.75,
+            '5-6': 0.88,
+            '6-7': 0.95,
+            '7-8': 1.00,
+            '8-9': 1.05
+        };
+
+        // Calculation Function
+        function calculateTotal() {
+            const careLevelKey = document.getElementById('careLevel').value;
+            const timeSlotKey = document.getElementById('timeSlot').value;
+            const days = parseInt(document.getElementById('monthlyDays').value) || 0;
+            const copayRate = parseFloat(document.getElementById('copayRate').value);
+            const regionRate = parseFloat(document.getElementById('regionRate').value);
+            const mealFeePerDay = parseInt(document.getElementById('mealFee').value) || 0;
+
+            const careData = BASE_UNITS[careLevelKey];
+            let baseUnitPerDayOrMonth = careData.base;
+
+            // Apply time slot multiplier if 要介護
+            if (careData.type === 'daily') {
+                const multiplier = TIME_MULTIPLIERS[timeSlotKey] || 1.0;
+                baseUnitPerDayOrMonth = Math.round(baseUnitPerDayOrMonth * multiplier);
+            }
+
+            // Collect Daily Addons
+            const bathing = parseInt(document.getElementById('addonBathing').value);
+            const service = parseInt(document.getElementById('addonService').value);
+            const funcDaily = parseInt(document.getElementById('addonFunctionalDaily').value);
+            const severe = parseInt(document.getElementById('addonSevere').value);
+            const dementia = parseInt(document.getElementById('addonDementia').value);
+            const youngDementia = parseInt(document.getElementById('addonYoungDementia').value);
+
+            const dailyAddonSum = bathing + service + funcDaily + severe + dementia + youngDementia;
+
+            // Collect Monthly Addons
+            const life = parseInt(document.getElementById('addonLife').value);
+            const funcMonthly = parseInt(document.getElementById('addonFunctionalMonthly').value);
+            const nutrition = parseInt(document.getElementById('addonNutrition').value);
+            const oral = parseInt(document.getElementById('addonOral').value);
+            const adl = parseInt(document.getElementById('addonAdl').value);
+
+            const monthlyAddonSum = life + funcMonthly + nutrition + oral + adl;
+
+            // Calculate Subtotal Units
+            let subtotalUnits = 0;
+            if (careData.type === 'daily') {
+                subtotalUnits = (baseUnitPerDayOrMonth + dailyAddonSum) * days + monthlyAddonSum;
+            } else {
+                // 要支援: 基本報酬は月額、日額加算は日数掛け
+                subtotalUnits = baseUnitPerDayOrMonth + (dailyAddonSum * days) + monthlyAddonSum;
+            }
+
+            // Treatment Improvement Addition (定率乗算)
+            const treatmentRate = parseFloat(document.getElementById('addonTreatment').value);
+            const treatmentUnits = Math.round(subtotalUnits * treatmentRate);
+
+            // Grand Total Units
+            const totalUnits = subtotalUnits + treatmentUnits;
+
+            // Total Insurance Cost (円)
+            const totalInsuranceCost = Math.floor(totalUnits * regionRate);
+
+            // User Copayment for Insurance
+            const insuranceCopay = Math.floor(totalInsuranceCost * copayRate);
+
+            // Meal Total
+            const totalMealCost = mealFeePerDay * days;
+
+            // Grand Total Out-of-Pocket
+            const grandTotal = insuranceCopay + totalMealCost;
+
+            // Update UI
+            document.getElementById('grandTotal').innerText = grandTotal.toLocaleString();
+            document.getElementById('summaryInsuranceCopay').innerText = insuranceCopay.toLocaleString();
+            document.getElementById('summaryMealTotal').innerText = totalMealCost.toLocaleString();
+
+            // Accordion Details
+            document.getElementById('detailBaseUnit').innerText = `${baseUnitPerDayOrMonth.toLocaleString()} 単位`;
+            document.getElementById('detailDailyAddon').innerText = `${dailyAddonSum.toLocaleString()} 単位/日`;
+            document.getElementById('detailMonthlyAddon').innerText = `${monthlyAddonSum.toLocaleString()} 単位/月`;
+            document.getElementById('detailSubtotalUnits').innerText = `${subtotalUnits.toLocaleString()} 単位`;
+            document.getElementById('detailTreatmentUnits').innerText = `${treatmentUnits.toLocaleString()} 単位`;
+            document.getElementById('detailTotalUnits').innerText = `${totalUnits.toLocaleString()} 単位`;
+            document.getElementById('detailTotalInsuranceAmount').innerText = `${totalInsuranceCost.toLocaleString()} 円`;
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            lucide.createIcons();
+            calculateTotal();
+        };
+    </script>
+</body>
+</html>
